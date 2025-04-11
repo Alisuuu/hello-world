@@ -16,26 +16,20 @@ if (!apiKey) {
 
 let computer = null;
 
-// Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Página principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Criar ou retornar VM do Hyperbeam
+// Criar ou retornar a VM
 app.get('/computer', async (req, res) => {
   if (computer) return res.send(computer);
   try {
     const response = await axios.post(
       'https://engine.hyperbeam.com/v0/vm',
       {},
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      }
+      { headers: { Authorization: `Bearer ${apiKey}` } }
     );
     computer = response.data;
     res.send(computer);
@@ -45,26 +39,32 @@ app.get('/computer', async (req, res) => {
   }
 });
 
-// Encerrar sessão (resetar VM)
-app.get('/reset', (req, res) => {
-  computer = null;
-  res.send({ message: 'Sessão encerrada com sucesso.' });
+// Encerrar VM de verdade
+app.get('/reset', async (req, res) => {
+  if (!computer || !computer.session_id) {
+    return res.status(400).send({ error: 'Nenhuma VM ativa para encerrar.' });
+  }
+
+  try {
+    await axios.delete(
+      `https://engine.hyperbeam.com/v0/vm/${computer.session_id}`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    console.log(`VM ${computer.session_id} encerrada.`);
+    computer = null;
+    res.send({ message: 'VM encerrada com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao encerrar VM:', error.message);
+    res.status(500).send({ error: 'Erro ao encerrar VM' });
+  }
 });
 
-// Chat em tempo real
 io.on('connection', (socket) => {
-  console.log('Novo usuário conectado');
-
   socket.on('chat message', (msg) => {
     io.emit('chat message', msg);
   });
-
-  socket.on('disconnect', () => {
-    console.log('Usuário desconectado');
-  });
 });
 
-// Porta para Render (usa variável de ambiente)
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
