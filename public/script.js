@@ -1,5 +1,5 @@
 const createVMButton = document.getElementById('create-vm');
-const endVMButton = document.getElementById('end-vm'); // Ainda referenciado para a lógica de fechamento
+const endVMButton = document.getElementById('end-vm');
 const shutdownVMButton = document.getElementById('shutdown-vm');
 const restartVMButton = document.getElementById('restart-vm');
 const settingsButton = document.getElementById('settings-button');
@@ -14,9 +14,8 @@ const chatInput = document.getElementById('chat-input');
 const sendButton = document.getElementById('send-button');
 
 const socket = io();
-let computer = null; // Mantenha a variável computer
+let computer = null;
 
-// Função para exibir mensagens no chat (já existente)
 function appendMessage(message) {
     const newMessage = document.createElement('p');
     newMessage.textContent = message;
@@ -24,18 +23,15 @@ function appendMessage(message) {
     chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
-// Conectar ao servidor Socket.IO (já existente)
 socket.on('connect', () => {
     console.log('Conectado ao servidor de chat');
     appendMessage('Você se conectou ao chat.');
 });
 
-// Receber mensagens do chat (já existente)
 socket.on('chat message', (msg) => {
     appendMessage(msg);
 });
 
-// Enviar mensagem de chat (já existente)
 sendButton.addEventListener('click', () => {
     const message = chatInput.value.trim();
     if (message) {
@@ -50,7 +46,6 @@ chatInput.addEventListener('keypress', (event) => {
     }
 });
 
-// Função para criar ou conectar à VM (já existente)
 createVMButton.addEventListener('click', async () => {
     try {
         const response = await fetch('/computer');
@@ -72,12 +67,10 @@ createVMButton.addEventListener('click', async () => {
     }
 });
 
-// Alternar a visibilidade do menu de configurações
 settingsButton.addEventListener('click', () => {
     settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
 });
 
-// Fechar o menu de configurações ao clicar fora
 window.addEventListener('click', (event) => {
     if (!event.target.matches('#settings-button')) {
         if (settingsMenu.style.display === 'block') {
@@ -86,7 +79,6 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Função para desligar a VM
 shutdownVMButton.addEventListener('click', async () => {
     if (!computer) {
         vmErrorParagraph.textContent = 'Nenhuma VM ativa para desligar.';
@@ -94,7 +86,7 @@ shutdownVMButton.addEventListener('click', async () => {
         return;
     }
     try {
-        const response = await fetch('/shutdown', { // Assumindo que você tem essa rota no servidor
+        const response = await fetch('/shutdown', {
             method: 'POST'
         });
         if (!response.ok) {
@@ -116,11 +108,10 @@ shutdownVMButton.addEventListener('click', async () => {
         vmErrorParagraph.textContent = error.message;
         vmErrorParagraph.style.display = 'block';
     } finally {
-        settingsMenu.style.display = 'none'; // Fechar o menu após a ação
+        settingsMenu.style.display = 'none';
     }
 });
 
-// Função para reiniciar a VM (você precisará implementar a rota '/restart' no servidor)
 restartVMButton.addEventListener('click', async () => {
     if (!computer) {
         vmErrorParagraph.textContent = 'Nenhuma VM ativa para reiniciar.';
@@ -128,7 +119,7 @@ restartVMButton.addEventListener('click', async () => {
         return;
     }
     try {
-        const response = await fetch('/restart', { // Rota a ser implementada no servidor
+        const response = await fetch('/restart', {
             method: 'POST'
         });
         if (!response.ok) {
@@ -137,7 +128,6 @@ restartVMButton.addEventListener('click', async () => {
         }
         const data = await response.json();
         if (data.success) {
-            // Lógica após a reinicialização (opcional)
             appendMessage('Solicitação de reinicialização da VM enviada.');
         } else {
             vmErrorParagraph.textContent = 'Erro ao reiniciar a VM.';
@@ -148,11 +138,10 @@ restartVMButton.addEventListener('click', async () => {
         vmErrorParagraph.textContent = error.message;
         vmErrorParagraph.style.display = 'block';
     } finally {
-        settingsMenu.style.display = 'none'; // Fechar o menu após a ação
+        settingsMenu.style.display = 'none';
     }
 });
 
-// Função para encerrar (fechar/deletar) a VM (já existente, mantido para consistência ou uso alternativo)
 endVMButton.addEventListener('click', async () => {
     if (!computer) {
         vmErrorParagraph.textContent = 'Nenhuma VM ativa para fechar.';
@@ -182,6 +171,6 @@ endVMButton.addEventListener('click', async () => {
         vmErrorParagraph.textContent = error.message;
         vmErrorParagraph.style.display = 'block';
     } finally {
-        settingsMenu.style.display = 'none'; // Fechar o menu após a ação (por consistência)
+        settingsMenu.style.display = 'none';
     }
 });
