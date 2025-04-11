@@ -1,51 +1,68 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const path = require('path');
+const http = require('http');
+const socketIO = require('socket.io');
+const axios = require('axios');
+require('dotenv').config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const server = http.createServer(app);
+const io = socketIO(server);
 
-const PORT = process.env.PORT || 3000;
-const HYPERBEAM_API_KEY = process.env.HYPERBEAM_API_KEY;
+const apiKey = process.env.HB_API_KEY;
+let computer = null;
 
-app.post("/create", async (req, res) => {
-  try {
-    const response = await axios.post(
-      "https://engine.hyperbeam.com/v0/vm",
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${HYPERBEAM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    res.json(response.data);
-  } catch (error) {
-    console.error("Erro ao criar VM:", error.response?.data || error.message);
-    res.status(500).json({ error: "Erro ao criar VM" });
-  }
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve a página inicial
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.post("/delete", async (req, res) => {
-  const { session_id } = req.body;
-
+// Cria ou retorna a VM
+app.get('/computer', async (req, res) => {
+  if (computer) return res.send(computer);
   try {
-    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${session_id}`, {
-      headers: {
-        Authorization: `Bearer ${HYPERBEAM_API_KEY}`,
-      },
+    const resp = await axios.post('https://engine.hyperbeam.com/v0/vm', {}, {
+      headers: { Authorization: `Bearer ${apiKey}` }
     });
-
-    res.json({ message: "Sessão encerrada com sucesso" });
-  } catch (error) {
-    console.error("Erro ao encerrar VM:", error.response?.data || error.message);
-    res.status(500).json({ error: "Erro ao encerrar VM" });
+    computer = resp.data;
+    res.send(computer);
+  } catch (err) {
+    console.error("Erro ao criar VM:", err.message);
+    res.status(500).send({ error: 'Erro ao criar VM' });
   }
 });
 
-app.listen(PORT, () => {
+// Encerra a VM
+app.post('/end', async (req, res) => {
+  if (!computer) return res.status(400).send({ error: 'Nenhuma VM ativa' });
+  try {
+    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${computer.id}`, {
+      headers: { Authorization: `Bearer ${apiKey}` }
+    });
+    computer = null;
+    res.send({ success: true });
+  } catch (err) {
+    console.error("Erro ao encerrar VM:", err.message);
+    res.status(500).send({ error: 'Erro ao encerrar VM' });
+  }
+});
+
+// Socket.IO para chat em tempo real
+io.on('connection', (socket) => {
+  console.log('Novo usuário conectado');
+
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Usuário desconectado');
+  });
+});
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
