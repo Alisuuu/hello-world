@@ -13,6 +13,7 @@ const apiKey = process.env.HB_API_KEY;
 let computer = null;
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json()); // Middleware para analisar o corpo das requisições POST
 
 // Serve a página inicial
 app.get('/', (req, res) => {
@@ -36,15 +37,23 @@ app.get('/computer', async (req, res) => {
 
 // Encerra a VM
 app.post('/end', async (req, res) => {
-  if (!computer) return res.status(400).send({ error: 'Nenhuma VM ativa' });
+  // Adicione logs para depuração
+  console.log('Recebida requisição para encerrar VM');
+  if (!computer) {
+    console.log('Nenhuma VM ativa para encerrar');
+    return res.status(400).send({ error: 'Nenhuma VM ativa' });
+  }
+  const vmId = computer.id; // Garante que temos o ID da VM
+  console.log(`Tentando encerrar VM com ID: ${vmId}`);
   try {
-    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${computer.id}`, {
+    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${vmId}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
+    console.log(`VM com ID ${vmId} encerrada com sucesso`);
     computer = null;
     res.send({ success: true });
   } catch (err) {
-    console.error("Erro ao encerrar VM:", err.message);
+    console.error(`Erro ao encerrar VM com ID ${vmId}:`, err.response ? err.response.data : err.message);
     res.status(500).send({ error: 'Erro ao encerrar VM' });
   }
 });
