@@ -1,169 +1,159 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Hyperbeam + Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hyperbeam Player</title>
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #000;
       color: #fff;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
-    }
-
-    header {
-      padding: 10px;
-      text-align: center;
-      background-color: #111;
-    }
-
-    #endSessionBtn {
-      background: #ff4d4d;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: stretch;
       align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow: hidden;
     }
 
-    #iframe-container {
-      flex: 1;
+    .container {
       width: 100%;
-      max-height: 60vh;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
     }
 
     iframe {
       width: 100%;
-      height: 100%;
+      aspect-ratio: 16 / 9;
       border: none;
+      border-radius: 12px;
+      margin-bottom: 15px;
     }
 
     #chat {
-      height: 35vh;
       width: 100%;
+      height: 200px;
+      background-color: #1a1a1a;
+      border-radius: 12px;
       padding: 10px;
-      background: #121212;
       overflow-y: auto;
+      margin-bottom: 10px;
     }
 
-    #chat-messages {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    #chat p {
+      margin: 5px 0;
     }
 
-    #chat-messages li {
-      padding: 5px 0;
-    }
-
-    #chat-form {
+    #form {
       display: flex;
+      width: 100%;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 12px 0 0 12px;
+      font-size: 16px;
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+
+    #send {
+      padding: 10px 15px;
+      background-color: #593BA2;
+      color: white;
+      border: none;
+      border-radius: 0 12px 12px 0;
+      cursor: pointer;
+    }
+
+    #end-vm-btn {
+      background-color: #e53935;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
       margin-top: 10px;
     }
 
-    #chat-input {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 5px;
-    }
-
-    #chat-form button {
-      background: #593BA2;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      margin-left: 8px;
-      border-radius: 5px;
-      cursor: pointer;
+    #end-vm-btn:hover {
+      background-color: #c62828;
     }
   </style>
 </head>
 <body>
-  <header>
-    <button id="endSessionBtn">Encerrar Sessão</button>
-  </header>
+  <div class="container">
+    <iframe id="hb-frame" allow="clipboard-read; clipboard-write; autoplay" allowfullscreen></iframe>
 
-  <div id="main">
-    <div id="iframe-container">
-      <iframe id="hbFrame" allow="camera; microphone; display-capture"></iframe>
-    </div>
+    <div id="chat"></div>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Digite sua mensagem..." />
+      <button type="submit" id="send">Enviar</button>
+    </form>
 
-    <div id="chat">
-      <ul id="chat-messages"></ul>
-      <form id="chat-form">
-        <input type="text" id="chat-input" placeholder="Digite sua mensagem..." autocomplete="off" />
-        <button type="submit">Enviar</button>
-      </form>
-    </div>
+    <button id="end-vm-btn">Encerrar Sessão</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const chat = document.getElementById('chat');
 
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-
-    chatForm.addEventListener('submit', (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const msg = chatInput.value.trim();
-      if (msg !== '') {
-        socket.emit('chat message', msg);
-        chatInput.value = '';
+      if (input.value.trim()) {
+        socket.emit('chat message', input.value);
+        input.value = '';
       }
     });
 
     socket.on('chat message', (msg) => {
-      const li = document.createElement('li');
-      li.textContent = msg;
-      chatMessages.appendChild(li);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      const msgEl = document.createElement('p');
+      msgEl.textContent = msg;
+      chat.appendChild(msgEl);
+      chat.scrollTop = chat.scrollHeight;
     });
 
     // Carrega VM
-    async function loadComputer() {
+    async function loadVM() {
       try {
         const res = await fetch('/computer');
         const data = await res.json();
-        const iframe = document.getElementById('hbFrame');
-        iframe.src = data.url;
+        document.getElementById('hb-frame').src = data.embed_url;
       } catch (err) {
-        alert('Erro ao carregar player');
+        alert("Erro ao carregar VM.");
         console.error(err);
       }
     }
 
-    // Botão encerrar VM
-    document.getElementById('endSessionBtn').addEventListener('click', async () => {
+    loadVM();
+
+    // Botão de encerrar
+    document.getElementById('end-vm-btn').addEventListener('click', async () => {
+      if (!confirm("Deseja realmente encerrar a sessão?")) return;
       try {
         const res = await fetch('/reset');
         const data = await res.json();
-        alert(data.message);
+        alert(data.message || "Sessão encerrada.");
         location.reload();
       } catch (err) {
-        alert('Erro ao encerrar sessão');
-        console.error(err);
+        alert("Erro ao encerrar sessão.");
       }
     });
-
-    loadComputer();
   </script>
 </body>
 </html>
