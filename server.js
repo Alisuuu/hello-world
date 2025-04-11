@@ -1,20 +1,21 @@
 const path = require('path')
 const express = require('express')
 const axios = require('axios')
-const app = express()
+const http = require('http')
+const { Server } = require('socket.io')
 
-// API Key Check
+const app = express()
+const server = http.createServer(app)
+const io = new Server(server)
+
 const apiKey = process.env.HB_API_KEY
 
-if (!apiKey || apiKey === "") {
-    console.error("API Key is not set, did you set the HB_API_KEY environment variable to your API key?")
-}
+app.use(express.static('public'))
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '/index.html'))
+  res.sendFile(path.join(__dirname, 'public/index.html'))
 })
 
-// Get a cloud computer object. If no object exists, create it.
 let computer
 app.get('/computer', async (req, res) => {
   if (computer) {
@@ -33,8 +34,19 @@ app.get('/computer', async (req, res) => {
   }
 })
 
-// Use a porta fornecida pelo Render, ou 8080 localmente
+io.on('connection', socket => {
+  console.log('Usuário conectado:', socket.id)
+
+  socket.on('chat message', msg => {
+    io.emit('chat message', msg)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Usuário desconectado:', socket.id)
+  })
+})
+
 const PORT = process.env.PORT || 8080
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+server.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`)
 })
