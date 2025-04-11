@@ -2,19 +2,22 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sala de Vídeo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Player com Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="movie-catalog">
-    <h1>Sala de Vídeo</h1>
-
-    <div id="player-container">
-      <iframe id="hyperbeam-frame" allow="clipboard-write" allowfullscreen></iframe>
+  <div class="container">
+    <div class="video-wrapper">
+      <iframe
+        id="hyperbeam-frame"
+        allow="clipboard-write"
+        allowfullscreen
+        frameborder="0"
+      ></iframe>
     </div>
 
-    <div id="chat-container">
+    <div class="chat-wrapper">
       <ul id="messages"></ul>
       <form id="form" action="">
         <input id="input" autocomplete="off" placeholder="Digite sua mensagem..." />
