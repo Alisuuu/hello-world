@@ -21,14 +21,20 @@ app.get('/computer', async (req, res) => {
     res.send(computer)
     return
   }
-  const resp = await axios.post('https://engine.hyperbeam.com/v0/vm', {}, {
-    headers: { 'Authorization': `Bearer ${apiKey}` }
-  })
-
-  computer = resp.data
-  res.send(computer)
+  try {
+    const resp = await axios.post('https://engine.hyperbeam.com/v0/vm', {}, {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    })
+    computer = resp.data
+    res.send(computer)
+  } catch (error) {
+    console.error(error)
+    res.status(500).send("Erro ao conectar à API da Hyperbeam")
+  }
 })
 
-app.listen(8080, () => {
-  console.log('Server start at http://localhost:8080')
+// Use a porta fornecida pelo Render, ou 8080 localmente
+const PORT = process.env.PORT || 8080
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
