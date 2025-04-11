@@ -1,88 +1,117 @@
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #000;
-  color: #fff;
-  overflow: hidden;
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.player-container {
-  flex: 1;
-  background-color: #111;
+h1, h2 {
+    text-align: center;
+    color: #007bff;
 }
 
-#hb-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
+#vm-controls button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-.chat-container {
-  background-color: #1a1a1a;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  height: 35vh;
-  max-height: 35vh;
-  overflow: hidden;
+#vm-controls button:hover {
+    background-color: #0056b3;
 }
 
-#messages {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  flex: 1;
-  overflow-y: auto;
-  font-size: 14px;
+#vm-info {
+    margin-top: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
 }
 
-#messages li {
-  padding: 6px;
-  border-bottom: 1px solid #333;
+#vm-info p {
+    margin-bottom: 5px;
 }
 
-form {
-  display: flex;
-  margin-top: 10px;
+#vm-info iframe {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
 }
 
-#message-input {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  background-color: #333;
-  color: white;
+#vm-info button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-button {
-  margin-left: 10px;
-  padding: 10px 20px;
-  background-color: #5e35b1;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+#vm-info button:hover {
+    background-color: #c82333;
 }
 
-@media (min-width: 768px) {
-  .container {
-    flex-direction: row;
-  }
+#vm-error.error {
+    color: #dc3545;
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+}
 
-  .player-container {
-    flex: 3;
-  }
+#chat-container {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+}
 
-  .chat-container {
-    flex: 1;
-    height: 100vh;
-    max-height: 100vh;
-  }
+#chat-messages {
+    height: 200px;
+    overflow-y: auto;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+#chat-input-area {
+    display: flex;
+}
+
+#chat-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
+
+#send-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#send-button:hover {
+    background-color: #1e7e34;
 }
