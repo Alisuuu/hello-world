@@ -1,156 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hyperbeam Room</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      background: #000;
-      font-family: Arial, sans-serif;
-      color: white;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    iframe {
-      border: none;
-      width: 100%;
-      max-width: 800px;
-      height: 450px;
-      margin-top: 20px;
-      border-radius: 10px;
-    }
-    #chat {
-      max-width: 800px;
-      width: 100%;
-      background: #111;
-      border-radius: 10px;
-      padding: 10px;
-      margin-top: 10px;
-      height: 200px;
-      overflow-y: auto;
-    }
-    #form {
-      display: flex;
-      max-width: 800px;
-      width: 100%;
-      margin-top: 10px;
-    }
-    #input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 10px 0 0 10px;
-    }
-    #send {
-      padding: 10px;
-      background: #5e35b1;
-      color: white;
-      border: none;
-      border-radius: 0 10px 10px 0;
-    }
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    .controls button {
-      background: #5e35b1;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperbeam no Celular</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+    <div class="container">
+        <h1>Controle Hyperbeam</h1>
 
-  <div class="controls">
-    <button onclick="openControls()">Controlar VM</button>
-    <button onclick="endSession()">Encerrar sessão</button>
-  </div>
+        <div id="vm-controls">
+            <button id="create-vm">Criar/Conectar VM</button>
+            <div id="vm-info" style="display: none;">
+                <p>ID da VM: <span id="vm-id"></span></p>
+                <iframe id="hyperbeam-iframe" width="100%" height="300px" frameborder="0"></iframe>
+                <button id="end-vm">Encerrar VM</button>
+            </div>
+            <p id="vm-error" class="error" style="display: none;"></p>
+        </div>
 
-  <iframe id="hb-frame" allow="clipboard-read; clipboard-write" allowfullscreen></iframe>
+        <div id="chat-container">
+            <h2>Chat em Tempo Real</h2>
+            <div id="chat-messages"></div>
+            <div id="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+                <button id="send-button">Enviar</button>
+            </div>
+        </div>
+    </div>
 
-  <div id="chat"></div>
-  <form id="form">
-    <input id="input" autocomplete="off" placeholder="Digite uma mensagem..." />
-    <button type="submit" id="send">Enviar</button>
-  </form>
-
-  <script>
-    const socket = io();
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const chat = document.getElementById('chat');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', input.value);
-        input.value = '';
-      }
-    });
-
-    socket.on('chat message', (msg) => {
-      const item = document.createElement('div');
-      item.textContent = msg;
-      chat.appendChild(item);
-      chat.scrollTop = chat.scrollHeight;
-    });
-
-    // Obter VM da API
-    fetch('/computer')
-      .then(res => res.json())
-      .then(data => {
-        const iframe = document.getElementById('hb-frame');
-        iframe.src = data.url;
-      })
-      .catch(() => {
-        Swal.fire('Erro', 'Não foi possível carregar o player.', 'error');
-      });
-
-    // Encerra a VM
-    function endSession() {
-      fetch('/end', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            Swal.fire('Encerrado', 'Sessão encerrada com sucesso.', 'success').then(() => {
-              location.reload();
-            });
-          } else {
-            Swal.fire('Erro', 'Não foi possível encerrar a sessão.', 'error');
-          }
-        });
-    }
-
-    // Mostrar controles da VM
-    function openControls() {
-      Swal.fire({
-        title: 'Controles da VM',
-        html: `<p>Clique abaixo para ativar o teclado ou colar um link no navegador.</p>
-               <button onclick="sendCtrlK()" style="margin-top:10px;padding:8px 12px;background:#5e35b1;color:#fff;border:none;border-radius:20px;">Ativar Teclado (Ctrl+K)</button>`,
-        showCloseButton: true,
-        showConfirmButton: false,
-        background: 'rgba(0,0,0,0.9)',
-        color: '#fff'
-      });
-    }
-
-    function sendCtrlK() {
-      const iframe = document.getElementById('hb-frame');
-      iframe.contentWindow.postMessage({ type: 'simulateShortcut', shortcut: 'ctrl+k' }, '*');
-    }
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
