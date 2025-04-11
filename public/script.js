@@ -3,11 +3,18 @@ const socket = io();
 fetch('/computer')
   .then(res => res.json())
   .then(data => {
-    console.log('VM criada:', data);
+    console.log('Resposta da VM:', data);
     const iframe = document.getElementById('hb-frame');
-    iframe.src = data.url;
+    if (data && data.url) {
+      iframe.src = data.url;
+    } else {
+      console.error('URL da VM não encontrada:', data);
+      iframe.replaceWith('Erro ao carregar o player.');
+    }
   })
-  .catch(err => console.error('Erro ao buscar VM:', err));
+  .catch(err => {
+    console.error('Erro ao buscar VM:', err);
+  });
 
 const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
