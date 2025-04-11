@@ -1,17 +1,13 @@
 {
-  "name": "hyperbeam-example",
+  "name": "hyperbeam-app",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "axios": "^0.27.2",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
+    "axios": "^1.4.0",
     "socket.io": "^4.7.2"
   }
 }
