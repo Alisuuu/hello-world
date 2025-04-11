@@ -1,73 +1,51 @@
-const express = require('express');
-const path = require('path');
-const axios = require('axios');
-const http = require('http');
-const socketIO = require('socket.io');
-require('dotenv').config();
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
+app.use(cors());
+app.use(express.json());
 
-const apiKey = process.env.HB_API_KEY;
-let computer = null;
+const PORT = process.env.PORT || 3000;
+const HYPERBEAM_API_KEY = process.env.HYPERBEAM_API_KEY;
 
-if (!apiKey) {
-  console.error("Erro: HB_API_KEY não está definida no .env");
-}
-
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Página principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
-// Criar nova VM
-app.get('/computer', async (req, res) => {
-  if (computer) return res.send(computer);
-
+app.post("/create", async (req, res) => {
   try {
-    const response = await axios.post('https://engine.hyperbeam.com/v0/vm', {}, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`
+    const response = await axios.post(
+      "https://engine.hyperbeam.com/v0/vm",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${HYPERBEAM_API_KEY}`,
+          "Content-Type": "application/json",
+        },
       }
-    });
-    computer = response.data;
-    res.send(computer);
+    );
+    res.json(response.data);
   } catch (error) {
-    console.error('Erro ao criar VM:', error.message);
-    res.status(500).send({ error: 'Erro ao criar VM' });
+    console.error("Erro ao criar VM:", error.response?.data || error.message);
+    res.status(500).json({ error: "Erro ao criar VM" });
   }
 });
 
-// Encerrar VM
-app.delete('/computer/:id', async (req, res) => {
-  const { id } = req.params;
+app.post("/delete", async (req, res) => {
+  const { session_id } = req.body;
 
   try {
-    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${id}`, {
+    await axios.delete(`https://engine.hyperbeam.com/v0/vm/${session_id}`, {
       headers: {
-        Authorization: `Bearer ${apiKey}`
-      }
+        Authorization: `Bearer ${HYPERBEAM_API_KEY}`,
+      },
     });
-    computer = null;
-    res.sendStatus(204);
+
+    res.json({ message: "Sessão encerrada com sucesso" });
   } catch (error) {
-    console.error('Erro ao encerrar VM:', error.message);
-    res.status(500).send({ error: 'Erro ao encerrar VM' });
+    console.error("Erro ao encerrar VM:", error.response?.data || error.message);
+    res.status(500).json({ error: "Erro ao encerrar VM" });
   }
 });
 
-// Chat
-io.on('connection', (socket) => {
-  console.log('Novo usuário conectado');
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-  });
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
