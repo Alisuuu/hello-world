@@ -1,31 +1,29 @@
 const socket = io();
-const form = document.getElementById('form');
-const input = document.getElementById('input');
-const messages = document.getElementById('messages');
-const frame = document.getElementById('hb-frame');
 
-// Chat
-form.addEventListener('submit', function(e) {
+fetch('/computer')
+  .then(res => res.json())
+  .then(data => {
+    console.log('VM criada:', data);
+    const iframe = document.getElementById('hb-frame');
+    iframe.src = data.url;
+  })
+  .catch(err => console.error('Erro ao buscar VM:', err));
+
+const form = document.getElementById('chat-form');
+const input = document.getElementById('message-input');
+const messages = document.getElementById('messages');
+
+form.addEventListener('submit', (e) => {
   e.preventDefault();
-  if (input.value) {
-    socket.emit('chat message', input.value);
+  if (input.value.trim()) {
+    socket.emit('chat message', input.value.trim());
     input.value = '';
   }
 });
 
-socket.on('chat message', function(msg) {
+socket.on('chat message', (msg) => {
   const item = document.createElement('li');
   item.textContent = msg;
   messages.appendChild(item);
   messages.scrollTop = messages.scrollHeight;
 });
-
-// Load Hyperbeam VM
-fetch('/computer')
-  .then(res => res.json())
-  .then(data => {
-    frame.src = data.embed_url;
-  })
-  .catch(err => {
-    console.error('Erro ao carregar VM Hyperbeam:', err);
-  });
