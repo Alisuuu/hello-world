@@ -2,112 +2,154 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hyperbeam Room</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
-      padding: 0;
       background: #000;
-      color: white;
       font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
     }
-
     iframe {
       border: none;
-      width: 90vw;
-      height: 80vh;
-      border-radius: 12px;
+      width: 100%;
+      max-width: 800px;
+      height: 450px;
+      margin-top: 20px;
+      border-radius: 10px;
     }
-
-    #abrir-controle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 18px;
-      font-size: 16px;
-      background: #444;
+    #chat {
+      max-width: 800px;
+      width: 100%;
+      background: #111;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      height: 200px;
+      overflow-y: auto;
+    }
+    #form {
+      display: flex;
+      max-width: 800px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    #input {
+      flex: 1;
+      padding: 10px;
       border: none;
+      border-radius: 10px 0 0 10px;
+    }
+    #send {
+      padding: 10px;
+      background: #5e35b1;
       color: white;
-      border-radius: 8px;
+      border: none;
+      border-radius: 0 10px 10px 0;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .controls button {
+      background: #5e35b1;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 20px;
       cursor: pointer;
     }
-
-    #abrir-controle:hover {
-      background: #666;
-    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://unpkg.com/@hyperbeam/web"></script>
 </head>
 <body>
-  <h1>Carregando sala...</h1>
+
+  <div class="controls">
+    <button onclick="openControls()">Controlar VM</button>
+    <button onclick="endSession()">Encerrar sessão</button>
+  </div>
+
   <iframe id="hb-frame" allow="clipboard-read; clipboard-write" allowfullscreen></iframe>
-  <button id="abrir-controle">Controle</button>
+
+  <div id="chat"></div>
+  <form id="form">
+    <input id="input" autocomplete="off" placeholder="Digite uma mensagem..." />
+    <button type="submit" id="send">Enviar</button>
+  </form>
 
   <script>
-    async function iniciarVM() {
-      const res = await fetch("/create", { method: "POST" });
-      const data = await res.json();
-      const iframe = document.getElementById("hb-frame");
-      iframe.src = data.url;
-      window.session_id = data.session_id;
+    const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const chat = document.getElementById('chat');
 
-      window.HBInstance = await Hyperbeam.init(iframe);
-    }
-
-    iniciarVM();
-
-    document.getElementById("abrir-controle").addEventListener("click", () => {
-      Swal.fire({
-        title: "Controle da VM",
-        html: `
-          <button onclick="digitarTexto()" style="margin: 10px;">Teclado</button>
-          <button onclick="encerrarVM()" style="margin: 10px;">Encerrar VM</button>
-        `,
-        showConfirmButton: false,
-        showCloseButton: true
-      });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value);
+        input.value = '';
+      }
     });
 
-    function digitarTexto() {
-      Swal.fire({
-        title: "Digite o que deseja enviar",
-        input: "text",
-        showCancelButton: true,
-        confirmButtonText: "Enviar",
-        preConfirm: (texto) => {
-          if (window.HBInstance) {
-            window.HBInstance.input.keyboard.typeText(texto);
+    socket.on('chat message', (msg) => {
+      const item = document.createElement('div');
+      item.textContent = msg;
+      chat.appendChild(item);
+      chat.scrollTop = chat.scrollHeight;
+    });
+
+    // Obter VM da API
+    fetch('/computer')
+      .then(res => res.json())
+      .then(data => {
+        const iframe = document.getElementById('hb-frame');
+        iframe.src = data.url;
+      })
+      .catch(() => {
+        Swal.fire('Erro', 'Não foi possível carregar o player.', 'error');
+      });
+
+    // Encerra a VM
+    function endSession() {
+      fetch('/end', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Encerrado', 'Sessão encerrada com sucesso.', 'success').then(() => {
+              location.reload();
+            });
           } else {
-            Swal.showValidationMessage("VM não conectada");
+            Swal.fire('Erro', 'Não foi possível encerrar a sessão.', 'error');
           }
-        }
+        });
+    }
+
+    // Mostrar controles da VM
+    function openControls() {
+      Swal.fire({
+        title: 'Controles da VM',
+        html: `<p>Clique abaixo para ativar o teclado ou colar um link no navegador.</p>
+               <button onclick="sendCtrlK()" style="margin-top:10px;padding:8px 12px;background:#5e35b1;color:#fff;border:none;border-radius:20px;">Ativar Teclado (Ctrl+K)</button>`,
+        showCloseButton: true,
+        showConfirmButton: false,
+        background: 'rgba(0,0,0,0.9)',
+        color: '#fff'
       });
     }
 
-    function encerrarVM() {
-      fetch("/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: window.session_id })
-      })
-      .then(res => res.json())
-      .then(data => {
-        Swal.fire("Sessão encerrada!", "", "success").then(() => {
-          location.reload();
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        Swal.fire("Erro ao encerrar VM", "", "error");
-      });
+    function sendCtrlK() {
+      const iframe = document.getElementById('hb-frame');
+      iframe.contentWindow.postMessage({ type: 'simulateShortcut', shortcut: 'ctrl+k' }, '*');
     }
   </script>
 </body>
