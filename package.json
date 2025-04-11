@@ -1,17 +1,14 @@
 {
-  "name": "hyperbeam-example",
+  "name": "hyperbeam-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "App com player Hyperbeam",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "axios": "^0.27.2",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.0.0",
     "express": "^4.18.1",
     "socket.io": "^4.7.2"
   }
