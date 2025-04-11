@@ -58,14 +58,26 @@ h1, h2 {
     padding: 10px;
     border: none;
     border-radius: 4px;
-    background-color: #dc3545;
-    color: white;
-    cursor: pointer;
     font-size: 16px;
+    margin-bottom: 5px; /* Adicionado margem entre os botões */
 }
 
-#vm-info button:hover {
+#vm-info button#end-vm {
+    background-color: #dc3545;
+    color: white;
+}
+
+#vm-info button#end-vm:hover {
     background-color: #c82333;
+}
+
+#vm-info button#shutdown-vm {
+    background-color: #ffc107; /* Cor amarela para diferenciar */
+    color: #212529;
+}
+
+#vm-info button#shutdown-vm:hover {
+    background-color: #e0a800;
 }
 
 #vm-error.error {
