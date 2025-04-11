@@ -2,15 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hyperbeam com Chat</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sala de Vídeo</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <iframe id="hb" allow="autoplay; clipboard-read; clipboard-write" frameborder="0"></iframe>
-
-    <div class="chat">
+  <div class="movie-catalog">
+    <h1>Sala de Vídeo</h1>
+    <div id="player-container">
+      <iframe id="hyperbeam-frame" allow="clipboard-write" allowfullscreen></iframe>
+    </div>
+    <div id="chat-container">
       <ul id="messages"></ul>
       <form id="form" action="">
         <input id="input" autocomplete="off" placeholder="Digite sua mensagem..." />
