@@ -36,11 +36,15 @@ app.get('/computer', async (req, res) => {
         res.send(computer);
     } catch (err) {
         console.error("Erro ao criar VM:", err.response ? err.response.data : err.message);
-        res.status(500).send({ error: 'Erro ao criar VM' });
+        let errorMessage = 'Erro ao criar VM';
+        if (err.response && err.response.data && err.response.data.message.includes('exceeded the active VM limit')) {
+            errorMessage = 'Limite de VMs ativas excedido. Por favor, encerre VMs existentes ou atualize seu plano Hyperbeam.';
+        }
+        res.status(500).send({ error: errorMessage });
     }
 });
 
-// Encerra a VM
+// Encerra a VM (desaloca recursos)
 app.post('/end', async (req, res) => {
     console.log("Recebida requisição para encerrar VM...");
     if (!computer) {
@@ -59,6 +63,30 @@ app.post('/end', async (req, res) => {
     } catch (err) {
         console.error(`Erro ao encerrar VM com ID ${vmId}:`, err.response ? err.response.data : err.message);
         res.status(500).send({ error: 'Erro ao encerrar VM' });
+    }
+});
+
+// Desliga a VM (pode ser um desligamento gracioso antes da desalocação - VERIFICAR API)
+app.post('/shutdown', async (req, res) => {
+    if (!computer) {
+        return res.status(400).send({ error: 'Nenhuma VM ativa para desligar.' });
+    }
+    const vmId = computer.id;
+    console.log(`Tentando desligar VM com ID: ${vmId}`);
+    try {
+        // *** VERIFICAR A DOCUMENTAÇÃO DA API HYPERBEAM PARA O ENDPOINT CORRETO DE DESLIGAMENTO ***
+        const response = await axios.post(
+            `https://engine.hyperbeam.com/v0/vm/${vmId}/shutdown`, // Exemplo de URL - **VERIFICAR!**
+            {}, // Pode haver um body específico necessário - **VERIFICAR!**
+            { headers: { Authorization: `Bearer ${apiKey}` } }
+        );
+        const data = response.data;
+        console.log(`VM com ID ${vmId} solicitada para desligamento com sucesso:`, data);
+        computer = null; // Ou talvez você queira manter o 'computer' ativo por um tempo após o desligamento
+        res.send({ success: true, message: 'VM solicitada para desligamento.' });
+    } catch (err) {
+        console.error(`Erro ao solicitar desligamento da VM com ID ${vmId}:`, err.response ? err.response.data : err.message);
+        res.status(500).send({ error: 'Erro ao solicitar desligamento da VM.' });
     }
 });
 
