@@ -7,17 +7,20 @@
     <link rel="stylesheet" href="style.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        #settings-container {
-            position: relative;
-            display: inline-block;
+        #vm-actions-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 20; /* Para ficar acima do iframe */
         }
 
         #settings-button {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
+            color: #555; /* Cor do ícone */
         }
 
         #settings-menu {
@@ -30,13 +33,14 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 10;
             display: none; /* Inicialmente escondido */
-            min-width: 120px;
+            min-width: 140px;
+            margin-top: 5px;
         }
 
         #settings-menu button {
             display: block;
             width: 100%;
-            padding: 8px 12px;
+            padding: 10px 15px;
             border: none;
             background: none;
             text-align: left;
@@ -54,16 +58,18 @@
 
         <div id="vm-controls">
             <button id="create-vm">Criar/Conectar VM</button>
-            <div id="vm-info" style="display: none;">
+            <div id="vm-info" style="display: none; position: relative;">
                 <p>ID da VM: <span id="vm-id"></span></p>
                 <iframe id="hyperbeam-iframe" width="100%" height="300px" frameborder="0"></iframe>
-                <div id="settings-container">
-                    <button id="settings-button">&#9881;</button> <div id="settings-menu">
+                <div id="vm-actions-container">
+                    <button id="settings-button">&#9881;</button>
+                    <div id="settings-menu">
                         <button id="shutdown-vm">Desligar VM</button>
                         <button id="restart-vm">Reiniciar VM</button>
+                        <button id="end-vm">Fechar VM</button>
                     </div>
                 </div>
-                <button id="end-vm" style="display: none;">Fechar VM</button> </div>
+            </div>
             <p id="vm-error" class="error" style="display: none;"></p>
         </div>
 
