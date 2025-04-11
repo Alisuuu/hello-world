@@ -1,5 +1,6 @@
 const createVMButton = document.getElementById('create-vm');
 const endVMButton = document.getElementById('end-vm');
+const shutdownVMButton = document.getElementById('shutdown-vm');
 const vmInfoDiv = document.getElementById('vm-info');
 const vmIdSpan = document.getElementById('vm-id');
 const hyperbeamIframe = document.getElementById('hyperbeam-iframe');
@@ -80,7 +81,7 @@ endVMButton.addEventListener('click', async () => {
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro ao comunicar com o servidor');
+            throw new Error(errorData.error || 'Erro ao comunicar com o servidor para encerrar a VM');
         }
         const data = await response.json();
         if (data.success) {
@@ -94,6 +95,38 @@ endVMButton.addEventListener('click', async () => {
         }
     } catch (error) {
         console.error('Erro ao encerrar VM:', error);
+        vmErrorParagraph.textContent = error.message;
+        vmErrorParagraph.style.display = 'block';
+    }
+});
+
+// Função para desligar a VM
+shutdownVMButton.addEventListener('click', async () => {
+    if (!computer) {
+        vmErrorParagraph.textContent = 'Nenhuma VM ativa para desligar.';
+        vmErrorParagraph.style.display = 'block';
+        return;
+    }
+    try {
+        const response = await fetch('/shutdown', {
+            method: 'POST' // Ou outro método HTTP se a API exigir
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro ao comunicar com o servidor para desligar a VM');
+        }
+        const data = await response.json();
+        if (data.success) {
+            computer = null;
+            vmInfoDiv.style.display = 'none';
+            createVMButton.style.display = 'block';
+            appendMessage('VM desligada.');
+        } else {
+            vmErrorParagraph.textContent = 'Erro ao desligar a VM.';
+            vmErrorParagraph.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Erro ao desligar VM:', error);
         vmErrorParagraph.textContent = error.message;
         vmErrorParagraph.style.display = 'block';
     }
