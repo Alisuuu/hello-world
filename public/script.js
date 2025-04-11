@@ -1,6 +1,6 @@
 const createVMButton = document.getElementById('create-vm');
 const endVMButton = document.getElementById('end-vm');
-const shutdownVMButton = document.getElementById('shutdown-vm');
+const shutdownVMButton = document.getElementById('shutdown-vm'); // Mantendo, caso a API tenha funcionalidade diferente
 const vmInfoDiv = document.getElementById('vm-info');
 const vmIdSpan = document.getElementById('vm-id');
 const hyperbeamIframe = document.getElementById('hyperbeam-iframe');
@@ -68,10 +68,10 @@ createVMButton.addEventListener('click', async () => {
     }
 });
 
-// Função para encerrar a VM
+// Função para encerrar (fechar/deletar) a VM
 endVMButton.addEventListener('click', async () => {
     if (!computer) {
-        vmErrorParagraph.textContent = 'Nenhuma VM ativa para encerrar.';
+        vmErrorParagraph.textContent = 'Nenhuma VM ativa para fechar.';
         vmErrorParagraph.style.display = 'block';
         return;
     }
@@ -81,53 +81,55 @@ endVMButton.addEventListener('click', async () => {
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro ao comunicar com o servidor para encerrar a VM');
+            throw new Error(errorData.error || 'Erro ao comunicar com o servidor para fechar a VM');
         }
         const data = await response.json();
         if (data.success) {
             computer = null;
             vmInfoDiv.style.display = 'none';
             createVMButton.style.display = 'block';
-            appendMessage('VM encerrada.');
+            appendMessage('VM fechada.');
         } else {
-            vmErrorParagraph.textContent = 'Erro ao encerrar a VM.';
+            vmErrorParagraph.textContent = 'Erro ao fechar a VM.';
             vmErrorParagraph.style.display = 'block';
         }
     } catch (error) {
-        console.error('Erro ao encerrar VM:', error);
+        console.error('Erro ao fechar VM:', error);
         vmErrorParagraph.textContent = error.message;
         vmErrorParagraph.style.display = 'block';
     }
 });
 
-// Função para desligar a VM
-shutdownVMButton.addEventListener('click', async () => {
-    if (!computer) {
-        vmErrorParagraph.textContent = 'Nenhuma VM ativa para desligar.';
-        vmErrorParagraph.style.display = 'block';
-        return;
-    }
-    try {
-        const response = await fetch('/shutdown', {
-            method: 'POST' // Ou outro método HTTP se a API exigir
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro ao comunicar com o servidor para desligar a VM');
+// Função para desligar a VM (mantendo o botão, mas pode ter a mesma lógica de 'end' se não houver endpoint específico)
+if (shutdownVMButton) {
+    shutdownVMButton.addEventListener('click', async () => {
+        if (!computer) {
+            vmErrorParagraph.textContent = 'Nenhuma VM ativa para desligar.';
+            vmErrorParagraph.style.display = 'block';
+            return;
         }
-        const data = await response.json();
-        if (data.success) {
-            computer = null;
-            vmInfoDiv.style.display = 'none';
-            createVMButton.style.display = 'block';
-            appendMessage('VM desligada.');
-        } else {
-            vmErrorParagraph.textContent = 'Erro ao desligar a VM.';
+        try {
+            const response = await fetch('/end', { // Usando '/end' por padrão, ajuste se a API tiver '/shutdown'
+                method: 'POST'
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao comunicar com o servidor para desligar a VM');
+            }
+            const data = await response.json();
+            if (data.success) {
+                computer = null;
+                vmInfoDiv.style.display = 'none';
+                createVMButton.style.display = 'block';
+                appendMessage('VM desligada.');
+            } else {
+                vmErrorParagraph.textContent = 'Erro ao desligar a VM.';
+                vmErrorParagraph.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Erro ao desligar VM:', error);
+            vmErrorParagraph.textContent = error.message;
             vmErrorParagraph.style.display = 'block';
         }
-    } catch (error) {
-        console.error('Erro ao desligar VM:', error);
-        vmErrorParagraph.textContent = error.message;
-        vmErrorParagraph.style.display = 'block';
-    }
-});
+    });
+}
