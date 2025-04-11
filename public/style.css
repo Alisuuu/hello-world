@@ -1,74 +1,88 @@
 body {
   margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: Arial, sans-serif;
   background-color: #000;
   color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
   overflow: hidden;
 }
 
 .container {
-  width: 100%;
-  max-width: 480px;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: #111;
 }
 
-#iframe {
-  width: 100%;
-  height: 60vh;
-  border: none;
-  border-bottom: 2px solid #222;
-}
-
-.chat-box {
+.player-container {
   flex: 1;
+  background-color: #111;
+}
+
+#hb-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.chat-container {
+  background-color: #1a1a1a;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  background-color: #111;
+  height: 35vh;
+  max-height: 35vh;
   overflow: hidden;
 }
 
 #messages {
-  list-style: none;
+  list-style-type: none;
   padding: 0;
   margin: 0;
+  flex: 1;
   overflow-y: auto;
-  flex-grow: 1;
-  scrollbar-width: none;
+  font-size: 14px;
 }
 
 #messages li {
-  margin-bottom: 10px;
-  background: #222;
-  padding: 8px 12px;
-  border-radius: 12px;
-  max-width: 80%;
-  word-wrap: break-word;
+  padding: 6px;
+  border-bottom: 1px solid #333;
 }
 
-#form {
+form {
   display: flex;
-  border-top: 1px solid #222;
+  margin-top: 10px;
 }
 
-#input {
+#message-input {
   flex: 1;
   padding: 10px;
   border: none;
-  border-radius: 0;
-  background: #000;
-  color: #fff;
-  font-size: 16px;
+  border-radius: 4px;
+  background-color: #333;
+  color: white;
 }
 
-#input:focus {
-  outline: none;
+button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  background-color: #5e35b1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .container {
+    flex-direction: row;
+  }
+
+  .player-container {
+    flex: 3;
+  }
+
+  .chat-container {
+    flex: 1;
+    height: 100vh;
+    max-height: 100vh;
+  }
 }
